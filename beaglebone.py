@@ -45,12 +45,13 @@ class Beaglebone:
         return time.strftime('%d-%m-%Y %H:%M:%S')
 
 
-    def connectToServer(self):
+    def isConnAvailable(self):
         try:
             self.s.connect((self.host, self.port))
             return True
         except socket.error as err:
-            # LOG ERROR
+            logging.error('Sunucuya baglanilamadi | [%s]', err)
+            #self.s.close()
             return False
 
 
@@ -75,9 +76,9 @@ class Beaglebone:
                 for fName in fList:
                     tFile.add(fName, arcname=fName.split('/')[1])
             logging.info('Sikistirma islemi tamamlandi')
+            self.removeRawData(fList)
         except Exception as err:
             logging.error('Sikistirma islemi sirasinda bir hata olustu | ( %s )', err)
-        self.removeRawData(fList)
 
 
     def removeRawData(self, fList):
@@ -91,24 +92,30 @@ class Beaglebone:
 
 
     def sendCompressedData(self):
-        """
-        print('send started')
-        self.connectToServer()
-        compressedFile = next(os.walk(self.backupData))[2][0]
-        compFileWithPath = '{}/{}'.format(self.backupData, compressedFile)
-        self.s.send(compressedFile.encode('utf-8'))
+        print('gonderme islemi baslatildi')
+        start = time.time()
+        if self.isConnAvailable():
+            compressedFile = next(os.walk(self.backupData))[2][0]
+            compFileWithPath = '{}/{}'.format(self.backupData, compressedFile)
 
-        file = open(compFileWithPath, 'rb')
-        data = file.read(self.buffer)
-        self.s.send(data)
-        while (data):
-            data = file.read(self.buffer)
-            self.s.send(data)
-        file.close()
-        print('*****    GONDERME    ISLEMI    TAMAMLANDI    *****')
+            try:
+                self.s.send(compressedFile.encode('utf-8'))
 
-        print('->', compFileWithPath)
-        os.unlink(compFileWithPath)"""
+                file = open(compFileWithPath, 'rb')
+                data = file.read(self.buffer)
+                self.s.send(data)
+                while (data):
+                    data = file.read(self.buffer)
+                    self.s.send(data)
+                file.close()
+                end = time.time()
+                print(compressedFile, ' gonderdildi')
+                print(end - start)
+                os.unlink(compFileWithPath)
+            except Exception as err:
+                print('hata sadsasdasd')
+        else:
+            print('baglanti yok')
 
 
 def main():
