@@ -33,4 +33,4 @@ except:
 
 while True:
     generateSample(folder)
-    time.sleep(1)
+    time.sleep(2)
