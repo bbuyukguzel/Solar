@@ -1,0 +1,10 @@
+# Detach screen session
+Ctrl a c
+Ctrl a d
+
+# Reconnect session
+screen -r 23536.pts-0.server1
+
+# Kill screen session
+screen -list
+screen -S 23536 -X quit
